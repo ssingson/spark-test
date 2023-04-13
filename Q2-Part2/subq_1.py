@@ -15,7 +15,11 @@ if __name__ == "__main__":
         .getOrCreate()
     
     #load OG data, get list of players
-    df = spark.read.csv('/content/spark-test/shot_logs.csv', inferSchema=True, header=True)
+    df=spark.read\
+        .format("csv")\
+        .option("inferSchema","true")\
+        .option("header","true")\
+        .load(sys.argv[1])
     player_list=list(df.toPandas()['player_name'].unique())
 
     #kmeans for each player
