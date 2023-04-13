@@ -1,40 +1,38 @@
 from __future__ import print_function
 
-# $example on$
 from pyspark.ml.clustering import KMeans
 from pyspark.ml.evaluation import ClusteringEvaluator
-# $example off$
 from pyspark.sql import SparkSession
 import sys
+
+from pyspark.ml.linalg import Vector
+from pyspark.ml.feature import VectorAssembler
 
 if __name__ == "__main__":
     spark = SparkSession\
         .builder\
-        .appName("KMeansExample")\
+        .appName("NBA_KMeans")\
         .getOrCreate()
+    
+    #load OG data, get list of players
+    df = spark.read.csv('/content/spark-test/shot_logs.csv', inferSchema=True, header=True)
+    player_list=list(df.toPandas()['player_name'].unique())
 
-    # $example on$
-    # Loads data.
-    dataset = spark.read.format("libsvm").load(sys.argv[1])
+    #kmeans for each player
+    for player in player_list:
+      print(player, end=': ')
+      new_df=df.filter(f"player_name == '{player}'")
+      input_cols=['SHOT_CLOCK', 'SHOT_DIST', 'CLOSE_DEF_DIST',]
+      vec_assembler=VectorAssembler(inputCols=input_cols, outputCol="zones", handleInvalid = "skip")
+      final_df=vec_assembler.transform(new_df)
 
-    # Trains a k-means model.
-    kmeans = KMeans().setK(2).setSeed(1)
-    model = kmeans.fit(dataset)
+      kmeans = KMeans(featuresCol='zones').setK(4).setSeed(1)
+      model = kmeans.fit(final_df)
+      predictions = model.transform(final_df)
 
-    # Make predictions
-    predictions = model.transform(dataset)
-
-    # Evaluate clustering by computing Silhouette score
-    evaluator = ClusteringEvaluator()
-
-    silhouette = evaluator.evaluate(predictions)
-    print("Silhouette with squared euclidean distance = " + str(silhouette))
-
-    # Shows the result.
-    centers = model.clusterCenters()
-    print("Cluster Centers: ")
-    for center in centers:
-        print(center)
-    # $example off$
+      centers = model.clusterCenters()
+      for center in centers:
+          print(center, end=' ')
+      print('\n')
 
     spark.stop()
