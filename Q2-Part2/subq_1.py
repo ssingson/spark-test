@@ -26,7 +26,7 @@ if __name__ == "__main__":
     for player in player_list:
       print(player, end=': ')
       new_df=df.filter(f"player_name == '{player}'")
-      input_cols=['SHOT_CLOCK', 'SHOT_DIST', 'CLOSE_DEF_DIST',]
+      input_cols=['SHOT_CLOCK', 'SHOT_DIST', 'CLOSE_DEF_DIST']
       vec_assembler=VectorAssembler(inputCols=input_cols, outputCol="zones", handleInvalid = "skip")
       final_df=vec_assembler.transform(new_df)
 
