@@ -11,7 +11,7 @@ from pyspark.ml.feature import VectorAssembler
 if __name__ == "__main__":
     spark = SparkSession\
         .builder\
-        .appName("NBA_KMeans")\
+        .appName("NBAKMeans")\
         .getOrCreate()
     
     #load OG data, get list of players
